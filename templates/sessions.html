@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+{% block main %}
+
+      <h2>Available Sessions</h2>
+      <ul>
+        {% for session in sessions %}
+        <li><a href="/problem/{{ problem.id }}/resume-session/{{ session.id }}">{{ session.comparisons.all|length }} comparisons, started {{ session.date }}</a></li>
+        {% endfor %}
+        <li><a href="/problem/{{ problem.id }}/start-session">Start a new session</a></li>
+      </ul>
+
+{% endblock %}

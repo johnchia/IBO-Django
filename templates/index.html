@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <div class="wrapper">
+      <h1>Paired Comparison Preference Learning</h1>
+      {% block main %}
+      <h2>Resume Your Session</h2>
+      <p><a href="/learn/">{{ session.problem.description }}</a> started {{ session.date }} with {{ session.comparisons.all|length }} comparisons.</p>
+      <h2>Begin a new session</h2>
+        <h3>Parametric Art</h3>
+      <ul>
+        {% for problem in problems %}
+        <li><a href="/problem/{{ problem.id }}/start-session">{{ problem.description }}</a></li>
+        {% endfor %}
+      </ul>
+      <h3>Image Processing</h3>
+      <p>(None)</p>
+      {% endblock %}
+    <div class="push"></div>
+    </div>
+    <div class="footer">
+      <ul>
+        <li><a href="/">Index</a></li>
+        <li><a href="/admin">Admin</a></li>
+      </ul>
+    </div>
+  </body>
+</html>
