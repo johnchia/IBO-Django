@@ -12,11 +12,13 @@
         <h3>Parametric Art</h3>
       <ul>
         {% for problem in problems %}
-        <li><a href="/problem/{{ problem.id }}/start-session">{{ problem.description }}</a></li>
+        <li><a href="/problem/ParametricArtProblem/{{ problem.id }}/start-session">{{ problem.description }}</a></li>
         {% endfor %}
       </ul>
       <h3>Image Processing</h3>
-      <p>(None)</p>
+      <ul>
+        <li><a href="/problem/WhiteBalanceProblem/1/start-session">Random Test Image</a></li>
+      </ul>
       {% endblock %}
     <div class="push"></div>
     </div>

@@ -31,17 +31,18 @@ def index(request):
     })
     return HttpResponse(t.render(c))
 
-def sessions(request,problem_id,session_id=None,action=None):
+def sessions(request,problem_id,session_id=None,action=None,module_name='ParametricArtProblem'):
+    module = eval(module_name)
     # set up
-    problem = ParametricArtProblem.objects.get(id=problem_id)
+    problem = module.objects.get(id=problem_id)
     sessions = BanditProblemSession.objects.select_related().filter(
-        content_type=ContentType.objects.get_for_model(ParametricArtProblem),
+        content_type=ContentType.objects.get_for_model(module),
         object_id=problem.id,
     )
     if action is not None:
         if action == 'start':
             session = BanditProblemSession.objects.create(
-                content_type=ContentType.objects.get_for_model(ParametricArtProblem),
+                content_type=ContentType.objects.get_for_model(module),
                 object_id=problem.id,
             )
             session_id = session.id
@@ -62,7 +63,6 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
         raise Exception('session_id not found in request.session')
     session = BanditProblemSession.objects.get(id=request.session['session_id'])
     problem = session.problem
-    Ndim = len(problem.parameters.split(','))
 
     # push to database if needed
     if pref is not None and unpref is not None:
@@ -83,25 +83,25 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
             for pc in pcs ])
 
     # generate art (it just sounds wrong!!!)
-    gallery = fastUCBGallery(gp, [[0,1]]*Ndim, 2, useBest=False, xi=problem.xi)
+    gallery = fastUCBGallery(gp, [[0,1]]*problem.dim(), 2, useBest=True, xi=problem.xi)
     ctx1,_ = BanditContext.objects.get_or_create(dimension=len(gallery[0]),vector=gallery[0].tolist())
     ctx2,_ = BanditContext.objects.get_or_create(dimension=len(gallery[1]),vector=gallery[1].tolist())
 
-    choice_1 = canvas_size/2.0*(1+problem.generate(ctx1.vector))
-    choice_2 = canvas_size/2.0*(1+problem.generate(ctx2.vector))
+    left_choice = problem.generate(ctx1.vector, id='left')
+    right_choice = problem.generate(ctx2.vector, id='right')
 
     # ...
     t = loader.get_template('compare.html')
     c = Context({
-        'choice_1': choice_1.tolist(),
-        'choice_2': choice_2.tolist(),
+        'left_choice': left_choice,
+        'right_choice': right_choice,
         'context_1': ctx1,
         'context_2': ctx2,
         'problem': problem,
     })
     return HttpResponse(t.render(c))
 
-def render_raw(request, problem_id, temperature=4500):
+def render_raw(request, problem_id, temperature=0.5):
     problem = WhiteBalanceProblem.objects.get(id=problem_id)
-    print temperature
+    #temperature = float(temperature)*5000.0 + 2000.0
     return HttpResponse(problem.render_jpeg(temperature), mimetype='image/jpeg')

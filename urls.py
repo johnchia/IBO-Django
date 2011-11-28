@@ -15,12 +15,12 @@ urlpatterns = patterns('',
     url(r'^clear/(?P<problem_id>\d+)$', 'ibo.views.clear', name='clear_history'),
 
     # session-related views (some of these are not used)
-    url(r'^problem/(?P<problem_id>\d+)/sessions$', 'ibo.views.sessions', name='sessions'),
-    url(r'^problem/(?P<problem_id>\d+)/(?P<action>\w+)-session$', 'ibo.views.sessions', name='sessions'),
-    url(r'^problem/(?P<problem_id>\d+)/(?P<action>\w+)-session/(?P<session_id>)$', 'ibo.views.sessions', name='sessions'),
+    url(r'^problem/(?P<module_name>\w+)/(?P<problem_id>\d+)/sessions$', 'ibo.views.sessions', name='sessions'),
+    url(r'^problem/(?P<module_name>\w+)/(?P<problem_id>\d+)/(?P<action>\w+)-session$', 'ibo.views.sessions', name='sessions'),
+    url(r'^problem/(?P<module_name>\w+)/(?P<problem_id>\d+)/(?P<action>\w+)-session/(?P<session_id>)$', 'ibo.views.sessions', name='sessions'),
 
     # image bandit views
-    url(r'^render-raw/(?P<problem_id>\d+)/(?P<temperature>\d+)', 'ibo.views.render_raw', name='render-raw'),
+    url(r'^render-raw/(?P<problem_id>\d+)/(?P<temperature>[\d\.]+)', 'ibo.views.render_raw', name='render-raw'),
 
     # the django admin interface
     url(r'^admin/', include(admin.site.urls)),

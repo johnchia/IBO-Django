@@ -1,6 +1,7 @@
 from subprocess import check_call
 from tempfile import NamedTemporaryFile
 from os import remove
+from django.template import Context, loader
 from django.conf import settings
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
@@ -25,6 +26,11 @@ class WhiteBalanceProblem(BanditProblem):
         tempfile = NamedTemporaryFile()
         check_call("DYLD_LIBRARY_PATH=~/Dropbox/src/ufraw-mac/lib ~/Dropbox/src/ufraw-mac/bin/ufraw-batch --size=800 --out-type=jpg --output=%s --overwrite --temperature=%s %s" % (tempfile.name, temperature, filename), shell=True)
         return open(tempfile.name, 'r').read()
+    def generate(self, context, id='default', csize=400):
+        temperature = context[0]*5000 + 2000
+        return ("<img width=\"%s\" src=\"/render-raw/%d/%f\" alt=\"%s/\">" % (csize,self.id, temperature, temperature))
+    def dim(self):
+        return 1
 
 class ParametricArtProblem(BanditProblem):
     # these would be something like a,b,c,t: a*cos(b*t)+c
@@ -32,7 +38,9 @@ class ParametricArtProblem(BanditProblem):
     xp = models.CharField(max_length=200)
     parameters = models.CharField(max_length=20)
     renderable_points = models.PositiveIntegerField(default=500)
-    def generate(self, context):
+    def dim(self):
+        return len(self.parameters.split(','))
+    def generate(self, context, id='default', csize=400):
         xfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.xp))
         yfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.yp))
         Npts = min(1000,self.renderable_points)
@@ -40,7 +48,12 @@ class ParametricArtProblem(BanditProblem):
         for i,t in enumerate(linspace(self.start,self.end,Npts)):
             pts[i,0] = xfunc(t,*context)
             pts[i,1] = yfunc(t,*context)
-        return pts
+        pts = 0.5*csize*(1+pts)
+        t = loader.get_template('parametric_art.html')
+        c = Context({ 'point_list': pts.tolist(), 'id': id, 'width':csize, 'height':csize })
+        return t.render(c)
+        
+
 
 class BanditProblemSession(models.Model):
     date = models.DateTimeField(auto_now=True)

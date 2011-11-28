@@ -1,46 +1,13 @@
 {% extends 'index.html' %}
 {% block main %}
-    <canvas id="drawing_left" width="400" height="400">
-    <p>Your browser doesn't support canvas.</p>
-    </canvas>
-    <canvas id="drawing_right" width="400" height="400">
-    <p>Your browser doesn't support canvas.</p>
-    </canvas>
-    <script>
-        function draw() {
-            var canvas_right = document.getElementById('drawing_right');
-            var canvas_left = document.getElementById('drawing_left');
-            /* LEFT */
-            if(canvas_left.getContext) {
-                var ctx = canvas_left.getContext('2d');
-                ctx.strokeStyle = "#000";
-                ctx.fillStyle = "#FFF";
-                ctx.beginPath();
-                {% for pt in choice_1 %}
-                ctx.lineTo({{ pt.0 }}, {{ pt.1 }});
-                {% endfor %}
-                ctx.stroke();
-            }
-            /* RIGHT */
-            if(canvas_right.getContext) {
-                var ctx = canvas_right.getContext('2d');
-                ctx.strokeStyle = "#000";
-                ctx.fillStyle = "#FFF";
-                ctx.beginPath();
-                {% for pt in choice_2 %}
-                ctx.lineTo({{ pt.0 }}, {{ pt.1 }});
-                {% endfor %}
-                ctx.stroke();
-            }
-        }
-        /* CONTEXTS
-         *  {{ context_1.vector }}
-         *  {{ context_2.vector }}
-         */
-        draw();
-    </script>
+    <div id="left_choice">{{ left_choice|safe }}</div>
+    <div id="right_choice">{{ right_choice|safe }}</div>
     <div>
         <a class='blue button large' href="/learn/{{ context_1.id }}/over/{{ context_2.id }}"><img src="/static/arrow_left_16x16.png"></a></li>
         <a class='blue button large' href="/learn/{{ context_2.id }}/over/{{ context_1.id }}"><img src="/static/arrow_right_16x16.png"></a></li>
     </div>
+    <!-- CONTEXTS {{ context_1.vector }} {{ context_2.vector }} -->
+    {{ context_1.vector }}
+    <br>
+    {{ context_2.vector }} 
 {% endblock %}

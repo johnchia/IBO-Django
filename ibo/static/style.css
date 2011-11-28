@@ -16,6 +16,15 @@ html, body {
     padding: 0y
 }
 
+#right_choice {
+    clear: right;
+    display: inline;
+}
+#left_choice {
+    clear: left;
+    display: inline;
+}
+
 .wrapper h1 {
     font-size: 1.41em;
     margin-bottom: 2em;

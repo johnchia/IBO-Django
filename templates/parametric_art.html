@@ -1,0 +1,21 @@
+<canvas id="drawing_{{ id }}" width="{{ width }}" height="{{ height }}">
+    <p>Your browser doesn't support canvas.</p>
+</canvas>
+<script>
+    function draw() {
+        var canvas_{{ id }} = document.getElementById('drawing_{{ id }}');
+        /* LEFT */
+        if(canvas_{{ id }}.getContext) {
+            var ctx = canvas_{{ id }}.getContext('2d');
+            ctx.strokeStyle = "#000";
+            ctx.fillStyle = "#FFF";
+            ctx.beginPath();
+            {% for pt in point_list %}
+            ctx.lineTo({{ pt.0 }}, {{ pt.1 }});
+            {% endfor %}
+            ctx.stroke();
+        }
+    }
+    draw();
+</script>
+
