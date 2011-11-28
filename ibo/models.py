@@ -1,3 +1,7 @@
+from subprocess import check_call
+from tempfile import NamedTemporaryFile
+from os import remove
+from django.conf import settings
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -9,8 +13,18 @@ class BanditProblem(models.Model):
     length_scale = models.FloatField(default=0.25)
     noise_magnitude = models.FloatField(default=0.01)
     xi = models.FloatField(default=0) # increase to gain exploration
+    start = models.FloatField(default=0)
+    end = models.FloatField(default=2*pi)
     class Meta:
         abstract = True
+
+class WhiteBalanceProblem(BanditProblem):
+    raw_image = models.FileField(upload_to='wb-bandit/%Y/%m/%d')
+    def render_jpeg(self, temperature):
+        filename = settings.MEDIA_ROOT + "/" + self.raw_image.name
+        tempfile = NamedTemporaryFile()
+        check_call("DYLD_LIBRARY_PATH=~/Dropbox/src/ufraw-mac/lib ~/Dropbox/src/ufraw-mac/bin/ufraw-batch --size=800 --out-type=jpg --output=%s --overwrite --temperature=%s %s" % (tempfile.name, temperature, filename), shell=True)
+        return open(tempfile.name, 'r').read()
 
 class ParametricArtProblem(BanditProblem):
     # these would be something like a,b,c,t: a*cos(b*t)+c
@@ -18,8 +32,6 @@ class ParametricArtProblem(BanditProblem):
     xp = models.CharField(max_length=200)
     parameters = models.CharField(max_length=20)
     renderable_points = models.PositiveIntegerField(default=500)
-    start = models.FloatField(default=0)
-    end = models.FloatField(default=2*pi)
     def generate(self, context):
         xfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.xp))
         yfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.yp))

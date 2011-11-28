@@ -1,4 +1,4 @@
-from ibo.models import ParametricArtProblem,BanditContext,PairedComparison
+from ibo.models import *
 from django.contrib import admin
 
 class ParametricArtProblemAdmin(admin.ModelAdmin):
@@ -17,3 +17,5 @@ class PairedComparisonAdmin(admin.ModelAdmin):
     # ...
     list_display = ('date','preferred_context','unpreferred_context')
 admin.site.register(PairedComparison, PairedComparisonAdmin)
+
+admin.site.register(WhiteBalanceProblem)

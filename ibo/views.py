@@ -101,3 +101,7 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
     })
     return HttpResponse(t.render(c))
 
+def render_raw(request, problem_id, temperature=4500):
+    problem = WhiteBalanceProblem.objects.get(id=problem_id)
+    print temperature
+    return HttpResponse(problem.render_jpeg(temperature), mimetype='image/jpeg')
