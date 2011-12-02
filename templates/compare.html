@@ -10,4 +10,15 @@
     {{ context_1.vector }}
     <br>
     {{ context_2.vector }} 
+
+
+
+    <div id="placeholder" style="width:600px;height:300px;"></div>
+
+<script type="text/javascript">
+$(function () {
+    $.plot($("#placeholder"), {{ plots|safe }});
+});
+</script>
+
 {% endblock %}

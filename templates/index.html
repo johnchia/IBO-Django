@@ -1,6 +1,8 @@
 <html>
   <head>
     <link rel="stylesheet" href="/static/style.css">
+    <script language="javascript" type="text/javascript" src="/static/flot/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="/static/flot/jquery.flot.js"></script>
   </head>
   <body>
     <div class="wrapper">
@@ -11,13 +13,15 @@
       <h2>Begin a new session</h2>
         <h3>Parametric Art</h3>
       <ul>
-        {% for problem in problems %}
+        {% for problem in problems_art %}
         <li><a href="/problem/ParametricArtProblem/{{ problem.id }}/start-session">{{ problem.description }}</a></li>
         {% endfor %}
       </ul>
-      <h3>Image Processing</h3>
+      <h3>White Balance Processing</h3>
       <ul>
-        <li><a href="/problem/WhiteBalanceProblem/1/start-session">Random Test Image</a></li>
+        {% for problem in problems_wb %}
+        <li><a href="/problem/WhiteBalanceProblem/{{ problem.id }}/start-session">{{ problem.description }}</a></li>
+        {% endfor %}
       </ul>
       {% endblock %}
     <div class="push"></div>

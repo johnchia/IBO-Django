@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.template import Context, loader
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect
+import json
 
 from ibo.models import *
 
@@ -19,7 +20,8 @@ def clear(request,problem_id):
     return redirect('/learn/' + str(problem_id))
 
 def index(request):
-    problems = ParametricArtProblem.objects.all()
+    problems_art = ParametricArtProblem.objects.all()
+    problems_wb = WhiteBalanceProblem.objects.all()
     session = None
     if request.session.has_key('session_id'):
         session = BanditProblemSession.objects.get(id=request.session['session_id'])
@@ -27,7 +29,8 @@ def index(request):
     t = loader.get_template('index.html')
     c = Context({
         'session': session,
-        'problems': problems,
+        'problems_art': problems_art,
+        'problems_wb': problems_wb,
     })
     return HttpResponse(t.render(c))
 
@@ -68,7 +71,7 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
     if pref is not None and unpref is not None:
         pref = BanditContext.objects.get(id=pref)
         unpref = BanditContext.objects.get(id=unpref)
-        pc,_ = PairedComparison.objects.get_or_create(
+        pc = PairedComparison.objects.create(
             unpreferred_context=unpref,
             preferred_context=pref,
             session=session,
@@ -83,12 +86,15 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
             for pc in pcs ])
 
     # generate art (it just sounds wrong!!!)
-    gallery = fastUCBGallery(gp, [[0,1]]*problem.dim(), 2, useBest=True, xi=problem.xi)
+    gal_db = {}
+    gallery = fastUCBGallery(gp, [[0,1]]*problem.dim(), 2, useBest=True, xi=problem.xi,passback=gal_db)
     ctx1,_ = BanditContext.objects.get_or_create(dimension=len(gallery[0]),vector=gallery[0].tolist())
     ctx2,_ = BanditContext.objects.get_or_create(dimension=len(gallery[1]),vector=gallery[1].tolist())
 
     left_choice = problem.generate(ctx1.vector, id='left')
     right_choice = problem.generate(ctx2.vector, id='right')
+
+    plots = _make_plots_from_gallery_passback(problem,gal_db)
 
     # ...
     t = loader.get_template('compare.html')
@@ -98,8 +104,35 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
         'context_1': ctx1,
         'context_2': ctx2,
         'problem': problem,
+        'plots': json.dumps(plots),
     })
     return HttpResponse(t.render(c))
+
+from numpy import linspace,sqrt
+def _make_plots_from_gallery_passback(problem,gal_db):
+    if problem.dim() > 1: return []
+    ut = gal_db['utility']
+    x = linspace(0,1,1/problem.length_scale*10)
+    utf = [-ut.negf(i) for i in x]
+    print utf
+    # get gp data
+    gp = gal_db['hallucGP']
+    p_gp = {}
+    m,v = gp.posteriors(x)
+    xdata = gp.X.tolist()
+    ydata = gp.Y.tolist()
+    m = m.tolist()
+    v = v.tolist()
+    vfill = []
+    vfill += [[x[i],m[i]+2*sqrt(v[i])] for i in range(len(m))]
+    vfill += [[x[-1-i],m[-1-i]-2*sqrt(v[-1-i])] for i in range(len(m))]
+    return [ 
+        { 'data': zip(x,utf), 'label': 'Utility', 'color': 'green', 'yaxis': 2 },
+        { 'data': zip(x,m), 'label': 'Posterior mean', 'color': 'blue' },
+        { 'data': zip(xdata,ydata), 'label': 'Observations', 'color': 'blue', 'points': { 'show': True } } ,
+        { 'data': vfill, 'label': 'Posterior 85%', 'lines': {  'lineWidth': 0, 'show': True, 'fill': 0.1 }, 'color': 'blue' },
+    ]
+        #{ 'data': [[gp.X[-1].tolist(),gp.Y[-1].tolist()]], 'label': 'Selected point', 'color': 'red', 'points': { 'show': True } } ,
 
 def render_raw(request, problem_id, temperature=0.5):
     problem = WhiteBalanceProblem.objects.get(id=problem_id)
