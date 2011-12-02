@@ -16,7 +16,7 @@ class VectorField(models.CharField):
     def get_db_prep_value(self, value):
         if not value: return
         assert(isinstance(value, list) or isinstance(value, tuple))
-        value = [str(round(x*1000)/1000.0) for x in value]
+        value = [str(round(x*10000)/10000.0) for x in value]
         return self.token.join([unicode(s) for s in value])
 
     def value_to_string(self, obj):

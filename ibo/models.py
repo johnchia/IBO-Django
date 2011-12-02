@@ -27,8 +27,8 @@ class WhiteBalanceProblem(BanditProblem):
         check_call("DYLD_LIBRARY_PATH=~/Dropbox/src/ufraw-mac/lib ~/Dropbox/src/ufraw-mac/bin/ufraw-batch --size=800 --out-type=jpg --output=%s --overwrite --temperature=%s %s" % (tempfile.name, temperature, filename), shell=True)
         return open(tempfile.name, 'r').read()
     def generate(self, context, id='default', csize=400):
-        temperature = context[0]*5000 + 2000
-        return ("<img width=\"%s\" src=\"/render-raw/%d/%f\" alt=\"%s/\">" % (csize,self.id, temperature, temperature))
+        #temperature = context[0]*5000 + 2000
+        return ("<img width=\"%s\" src=\"/render-raw-wb/%d/%d\" alt=\"%s/\">" % (csize,self.id, context.id, str(context)))
     def dim(self):
         return 1
 
@@ -44,10 +44,11 @@ class ParametricArtProblem(BanditProblem):
         xfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.xp))
         yfunc = eval('lambda t,' + str(self.parameters) + ': ' + str(self.yp))
         Npts = min(1000,self.renderable_points)
+        context_vec = context.vector
         pts = zeros((Npts, 2))
         for i,t in enumerate(linspace(self.start,self.end,Npts)):
-            pts[i,0] = xfunc(t,*context)
-            pts[i,1] = yfunc(t,*context)
+            pts[i,0] = xfunc(t,*context_vec)
+            pts[i,1] = yfunc(t,*context_vec)
         pts = 0.5*csize*(1+pts)
         t = loader.get_template('parametric_art.html')
         c = Context({ 'point_list': pts.tolist(), 'id': id, 'width':csize, 'height':csize })

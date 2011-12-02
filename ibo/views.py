@@ -91,8 +91,8 @@ def learn(request,pref=None,unpref=None,canvas_size=400):
     ctx1,_ = BanditContext.objects.get_or_create(dimension=len(gallery[0]),vector=gallery[0].tolist())
     ctx2,_ = BanditContext.objects.get_or_create(dimension=len(gallery[1]),vector=gallery[1].tolist())
 
-    left_choice = problem.generate(ctx1.vector, id='left')
-    right_choice = problem.generate(ctx2.vector, id='right')
+    left_choice = problem.generate(ctx1, id='left')
+    right_choice = problem.generate(ctx2, id='right')
 
     plots = _make_plots_from_gallery_passback(problem,gal_db)
 
@@ -134,7 +134,8 @@ def _make_plots_from_gallery_passback(problem,gal_db):
     ]
         #{ 'data': [[gp.X[-1].tolist(),gp.Y[-1].tolist()]], 'label': 'Selected point', 'color': 'red', 'points': { 'show': True } } ,
 
-def render_raw(request, problem_id, temperature=0.5):
+def render_raw_wb(request, problem_id, context_id):
     problem = WhiteBalanceProblem.objects.get(id=problem_id)
-    #temperature = float(temperature)*5000.0 + 2000.0
+    context = BanditContext.objects.get(id=context_id)
+    temperature = float(context.vector[0])*5000.0 + 2000.0
     return HttpResponse(problem.render_jpeg(temperature), mimetype='image/jpeg')
